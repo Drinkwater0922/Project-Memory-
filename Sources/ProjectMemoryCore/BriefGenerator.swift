@@ -6,14 +6,46 @@ public struct BriefGenerator {
     public static func makeDailyBriefPrompt(
         projects: [Project],
         sources: [MemorySource],
+        events: [TimelineEvent],
+        totals: SelectionTotals = .default,
+        caps: ActivitySessionCaps = .default
+    ) -> String {
+        BriefGenerator().makeDailyBriefPrompt(
+            projects: projects,
+            sources: sources,
+            events: events,
+            totals: totals,
+            caps: caps
+        )
+    }
+
+    public static func buildPrompt(
+        projects: [Project],
+        snippets: [SelectedSourceSnippet],
         events: [TimelineEvent]
     ) -> String {
-        BriefGenerator().makeDailyBriefPrompt(projects: projects, sources: sources, events: events)
+        BriefGenerator().buildPrompt(projects: projects, snippets: snippets, events: events)
     }
 
     public func makeDailyBriefPrompt(
         projects: [Project],
         sources: [MemorySource],
+        events: [TimelineEvent],
+        totals: SelectionTotals = .default,
+        caps: ActivitySessionCaps = .default
+    ) -> String {
+        let snippets = SourceSnippetSelector.selectForBrief(
+            projects: projects,
+            sources: sources,
+            totals: totals,
+            caps: caps
+        )
+        return buildPrompt(projects: projects, snippets: snippets, events: events)
+    }
+
+    public func buildPrompt(
+        projects: [Project],
+        snippets: [SelectedSourceSnippet],
         events: [TimelineEvent]
     ) -> String {
         """
@@ -31,7 +63,7 @@ public struct BriefGenerator {
         \(formatProjects(projects))
 
         来源片段（已在本地按项目配额和最近修改筛选并截断，不代表完整文件）：
-        \(formatSources(SourceSnippetSelector.selectForBrief(projects: projects, sources: sources)))
+        \(formatSnippets(snippets))
 
         时间线事件：
         \(formatEvents(events))
@@ -48,17 +80,17 @@ public struct BriefGenerator {
         }.joined(separator: "\n")
     }
 
-    private func formatSources(_ sources: [MemorySource]) -> String {
-        guard !sources.isEmpty else {
+    private func formatSnippets(_ snippets: [SelectedSourceSnippet]) -> String {
+        guard !snippets.isEmpty else {
             return "- 无来源证据"
         }
 
-        return sources.map { source in
+        return snippets.map { snippet in
             """
-            - 来源：《\(source.title)》
-              路径：\(source.path)
-              URL：\(source.url ?? "无")
-              内容片段：\(SourceSnippetSelector.snippet(source.extractedText))
+            - 来源：《\(snippet.source.title)》
+              路径：\(snippet.source.path)
+              URL：\(snippet.source.url ?? "无")
+              内容片段：\(snippet.snippet)
             """
         }.joined(separator: "\n")
     }

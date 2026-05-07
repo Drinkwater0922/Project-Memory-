@@ -3,11 +3,44 @@ import Foundation
 public struct AnswerEngine {
     public init() {}
 
-    public static func makeQuestionPrompt(question: String, sources: [MemorySource]) -> String {
-        AnswerEngine().makeQuestionPrompt(question: question, sources: sources)
+    public static func makeQuestionPrompt(
+        question: String,
+        sources: [MemorySource],
+        selectedProjectID: UUID? = nil,
+        totals: SelectionTotals = .default,
+        caps: ActivitySessionCaps = .default
+    ) -> String {
+        AnswerEngine().makeQuestionPrompt(
+            question: question,
+            sources: sources,
+            selectedProjectID: selectedProjectID,
+            totals: totals,
+            caps: caps
+        )
     }
 
-    public func makeQuestionPrompt(question: String, sources: [MemorySource]) -> String {
+    public static func buildPrompt(question: String, snippets: [SelectedSourceSnippet]) -> String {
+        AnswerEngine().buildPrompt(question: question, snippets: snippets)
+    }
+
+    public func makeQuestionPrompt(
+        question: String,
+        sources: [MemorySource],
+        selectedProjectID: UUID? = nil,
+        totals: SelectionTotals = .default,
+        caps: ActivitySessionCaps = .default
+    ) -> String {
+        let snippets = SourceSnippetSelector.selectForQuestion(
+            sources,
+            question: question,
+            selectedProjectID: selectedProjectID,
+            totals: totals,
+            caps: caps
+        )
+        return buildPrompt(question: question, snippets: snippets)
+    }
+
+    public func buildPrompt(question: String, snippets: [SelectedSourceSnippet]) -> String {
         """
         请用中文回答问题，并严格遵守：
         - 只能根据下面列出的来源回答。
@@ -19,21 +52,21 @@ public struct AnswerEngine {
         \(question)
 
         来源片段（已在本地按问题相关性筛选并截断，不代表完整文件）：
-        \(formatSources(SourceSnippetSelector.selectForQuestion(sources, question: question)))
+        \(formatSnippets(snippets))
         """
     }
 
-    private func formatSources(_ sources: [MemorySource]) -> String {
-        guard !sources.isEmpty else {
+    private func formatSnippets(_ snippets: [SelectedSourceSnippet]) -> String {
+        guard !snippets.isEmpty else {
             return "- 无来源证据"
         }
 
-        return sources.map { source in
+        return snippets.map { snippet in
             """
-            - 来源：《\(source.title)》
-              路径：\(source.path)
-              URL：\(source.url ?? "无")
-              内容片段：\(SourceSnippetSelector.snippet(source.extractedText))
+            - 来源：《\(snippet.source.title)》
+              路径：\(snippet.source.path)
+              URL：\(snippet.source.url ?? "无")
+              内容片段：\(snippet.snippet)
             """
         }.joined(separator: "\n")
     }

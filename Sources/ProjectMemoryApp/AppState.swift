@@ -500,7 +500,9 @@ final class AppState: ObservableObject {
                     projectID: nil,
                     title: "Daily Brief",
                     body: dailyBrief,
-                    sourceIDs: SourceSnippetSelector.selectForBrief(projects: projects, sources: sources).map(\.id)
+                    sourceIDs: SourceSnippetSelector
+                        .selectForBrief(projects: projects, sources: sources)
+                        .map(\.source.id)
                 )
             )
             errorMessage = nil

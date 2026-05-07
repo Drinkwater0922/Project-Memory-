@@ -17,8 +17,9 @@ final class SourceSnippetSelectorTests: XCTestCase {
         let selected = SourceSnippetSelector.selectForBrief(sources)
 
         XCTAssertEqual(selected.count, 12)
-        XCTAssertEqual(selected.first?.title, "Source 12")
-        XCTAssertFalse(selected.contains { $0.title == "Source 0" })
+        XCTAssertEqual(selected.first?.source.title, "Source 12")
+        XCTAssertFalse(selected.contains { $0.source.title == "Source 0" })
+        XCTAssertTrue(selected.allSatisfy { $0.snippet == "content" && !$0.truncated })
     }
 
     func testSelectForBriefIncludesSourcesFromEachProject() {
@@ -48,14 +49,18 @@ final class SourceSnippetSelectorTests: XCTestCase {
         let selected = SourceSnippetSelector.selectForBrief(
             projects: [productProject, meetingProject],
             sources: productSources + meetingSources,
-            limit: 6,
-            perProjectLimit: 2
+            totals: SelectionTotals(
+                maxSourcesPerBrief: 6,
+                maxSourcesPerAnswer: SelectionTotals.default.maxSourcesPerAnswer,
+                maxSourcesPerProject: 2
+            )
         )
 
         XCTAssertEqual(selected.count, 6)
-        XCTAssertTrue(selected.contains { $0.projectID == productProject.id })
-        XCTAssertTrue(selected.contains { $0.projectID == meetingProject.id })
-        XCTAssertEqual(selected.filter { $0.projectID == meetingProject.id }.count, 2)
+        XCTAssertTrue(selected.contains { $0.source.projectID == productProject.id })
+        XCTAssertTrue(selected.contains { $0.source.projectID == meetingProject.id })
+        XCTAssertEqual(selected.filter { $0.source.projectID == meetingProject.id }.count, 2)
+        XCTAssertTrue(selected.allSatisfy { !$0.snippet.isEmpty && !$0.truncated })
     }
 
     func testSelectForQuestionPrioritizesKeywordMatchOverRecency() {
@@ -81,7 +86,9 @@ final class SourceSnippetSelectorTests: XCTestCase {
             question: "privacy retrieval"
         )
 
-        XCTAssertEqual(selected.first?.id, matchingOlder.id)
+        XCTAssertEqual(selected.first?.source.id, matchingOlder.id)
+        XCTAssertEqual(selected.first?.snippet, "retrieval privacy")
+        XCTAssertEqual(selected.first?.truncated, false)
     }
 
     func testSnippetBoundaryAndTruncationMarker() {
