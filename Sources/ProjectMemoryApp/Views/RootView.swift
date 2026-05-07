@@ -20,6 +20,12 @@ struct RootView: View {
                     Label("Sources", systemImage: "doc.text")
                 }
 
+            TriageView(store: appState.store)
+                .tabItem {
+                    Label("待归属", systemImage: "questionmark.square")
+                }
+                .badge(appState.triageBadgeCount)
+
             AskView()
                 .tabItem {
                     Label("Ask", systemImage: "questionmark.bubble")

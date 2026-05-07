@@ -23,6 +23,15 @@ internal enum ActivitySettings {
     }
 }
 
+internal enum TriageBadgeCounter {
+    static func count(store: MemoryStore, since: Date, until: Date) throws -> Int {
+        let sessions = try store.fetchActivitySessions(since: since, until: until)
+        return sessions.filter {
+            $0.assignmentStatus == .unassigned && $0.category == .work
+        }.count
+    }
+}
+
 @MainActor
 final class AppState: ObservableObject {
     @Published var projects: [Project] = []
@@ -38,6 +47,7 @@ final class AppState: ObservableObject {
     @Published var autoWebCaptureStatus = "Auto web capture is off."
     @Published var activityCaptureEnabled: Bool = false
     @Published var activityExtraDenied: [String] = []
+    @Published var triageBadgeCount: Int = 0
 
     let store: MemoryStore
     let databasePath: String
@@ -147,9 +157,20 @@ final class AppState: ObservableObject {
             if selectedProjectID == nil || !projects.contains(where: { $0.id == selectedProjectID }) {
                 selectedProjectID = projects.first?.id
             }
+            refreshTriageBadge()
             errorMessage = nil
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+
+    func refreshTriageBadge() {
+        let until = Date()
+        let since = until.addingTimeInterval(-7 * 24 * 60 * 60)
+        do {
+            triageBadgeCount = try TriageBadgeCounter.count(store: store, since: since, until: until)
+        } catch {
+            triageBadgeCount = 0
         }
     }
 
