@@ -56,7 +56,7 @@ final class SourceSnippetSelectorTests: XCTestCase {
             )
         )
 
-        XCTAssertEqual(selected.count, 6)
+        XCTAssertEqual(selected.count, 4)
         XCTAssertTrue(selected.contains { $0.source.projectID == productProject.id })
         XCTAssertTrue(selected.contains { $0.source.projectID == meetingProject.id })
         XCTAssertEqual(selected.filter { $0.source.projectID == meetingProject.id }.count, 2)
