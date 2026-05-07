@@ -504,6 +504,7 @@ final class AppState: ObservableObject {
         defer { isLoading = false }
 
         do {
+            try? SessionPipeline(store: store).run(window: SessionPipeline.briefWindow())
             reload()
             let since = Calendar.current.date(byAdding: .day, value: -7, to: Date())
             let events = try projects
@@ -553,10 +554,12 @@ final class AppState: ObservableObject {
         defer { isLoading = false }
 
         do {
+            try? SessionPipeline(store: store).run(window: SessionPipeline.answerWindow())
             reload()
             let prompt = AnswerEngine().makeQuestionPrompt(
                 question: trimmedQuestion,
-                sources: selectedProjectSources
+                sources: selectedProjectSources,
+                selectedProjectID: selectedProject?.id
             )
             answer = try await OpenRouterClient(apiKey: openRouterAPIKey).complete(prompt: prompt)
             errorMessage = nil

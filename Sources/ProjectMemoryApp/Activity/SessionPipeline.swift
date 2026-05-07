@@ -35,3 +35,17 @@ final class SessionPipeline {
         )
     }
 }
+
+extension SessionPipeline {
+    static func briefWindow(now: Date = Date()) -> DateInterval {
+        DateInterval(start: now.addingTimeInterval(-24 * 60 * 60), end: now)
+    }
+
+    static func answerWindow(now: Date = Date()) -> DateInterval {
+        DateInterval(start: now.addingTimeInterval(-7 * 24 * 60 * 60), end: now)
+    }
+
+    static func triageWindow(now: Date = Date()) -> DateInterval {
+        DateInterval(start: now.addingTimeInterval(-7 * 24 * 60 * 60), end: now)
+    }
+}

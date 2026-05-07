@@ -46,7 +46,9 @@ struct TriageView: View {
             }
         }
         .onAppear {
+            try? SessionPipeline(store: appState.store).run(window: SessionPipeline.triageWindow())
             viewModel.refresh()
+            appState.refreshTriageBadge()
         }
     }
 
