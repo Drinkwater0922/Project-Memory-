@@ -1,0 +1,22 @@
+{
+  "briefs": {
+    "daily-global": {
+      "decisions_to_recover": [],
+      "expected_actions": [],
+      "must_mention": [],
+      "must_not_say": []
+    }
+  },
+  "questions": {
+    "q-meeting-followup": {
+      "expected_answer_summary": "",
+      "expected_evidence_paths": [],
+      "should_refuse": false
+    },
+    "q-product-status": {
+      "expected_answer_summary": "",
+      "expected_evidence_paths": [],
+      "should_refuse": false
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "briefs": [
+    {
+      "id": "daily-global",
+      "scope": "global"
+    }
+  ],
+  "questions": [
+    {
+      "id": "q-product-status",
+      "project_id": "product-insights",
+      "text": "这个项目我上次做到哪了？"
+    },
+    {
+      "id": "q-meeting-followup",
+      "project_id": "meeting-notes",
+      "text": "上周之后发生了什么变化？"
+    }
+  ]
+}

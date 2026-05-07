@@ -1,0 +1,23 @@
+# Swift / SwiftPM build artifacts
+.build/
+.swiftpm/
+DerivedData/
+
+# macOS
+.DS_Store
+
+# Xcode user state
+*.xcuserdata
+*.xcuserstate
+
+# SQLite (real dogfood data; never check in)
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+
+# Local secrets / env
+.env
+.env.*
+
+# Claude Code per-user permissions
+.claude/settings.local.json

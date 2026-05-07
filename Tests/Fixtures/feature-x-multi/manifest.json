@@ -1,0 +1,10 @@
+{
+  "description": "Two synthetic projects for cross-project brief coverage.",
+  "id": "feature-x-multi",
+  "kind": "synthetic",
+  "tags": [
+    "multi-project",
+    "synthetic"
+  ],
+  "version": "1"
+}
