@@ -5,8 +5,8 @@ public enum MemoryStoreError: Error, Equatable {
 }
 
 public final class MemoryStore {
-    private let database: SQLiteDatabase
-    private let iso = ISO8601DateFormatter()
+    let database: SQLiteDatabase
+    let iso = ISO8601DateFormatter()
 
     public init(path: String) throws {
         self.database = try SQLiteDatabase(path: path)
