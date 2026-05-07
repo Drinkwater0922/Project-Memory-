@@ -134,6 +134,75 @@ extension MemoryStore {
         }
     }
 
+    public func upsertRule(_ rule: ProjectActivityRule) throws {
+        try database.execute(
+            """
+            INSERT OR REPLACE INTO project_activity_rules
+            (id, project_id, kind, pattern, is_enabled, created_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            values: [
+                .text(rule.id.uuidString),
+                .text(rule.projectID.uuidString),
+                .text(rule.kind.rawValue),
+                .text(rule.pattern.trimmingCharacters(in: .whitespacesAndNewlines)),
+                .integer(rule.isEnabled ? 1 : 0),
+                .text(iso.string(from: rule.createdAt))
+            ]
+        )
+    }
+
+    public func fetchRules() throws -> [ProjectActivityRule] {
+        let rows = try database.query(
+            "SELECT * FROM project_activity_rules ORDER BY created_at ASC"
+        )
+        return try rows.map { row in
+            guard let kind = ProjectActivityRule.Kind(rawValue: try activitySessionText("kind", in: row)) else {
+                throw MemoryStoreError.invalidRow("kind")
+            }
+            return ProjectActivityRule(
+                id: try activitySessionUUID("id", in: row),
+                projectID: try activitySessionUUID("project_id", in: row),
+                kind: kind,
+                pattern: try activitySessionText("pattern", in: row),
+                isEnabled: try activitySessionInt("is_enabled", in: row) != 0,
+                createdAt: try activitySessionDate("created_at", in: row, formatter: iso)
+            )
+        }
+    }
+
+    public func deleteRule(id: UUID) throws {
+        try database.execute(
+            "DELETE FROM project_activity_rules WHERE id = ?",
+            values: [.text(id.uuidString)]
+        )
+    }
+
+    public func findSourceByPath(_ path: String) throws -> MemorySource? {
+        let rows = try database.query(
+            "SELECT * FROM sources WHERE path = ? LIMIT 1",
+            values: [.text(path)]
+        )
+        return try rows.first.map(memorySourceFromActivitySessionExtension)
+    }
+
+    public func fetchActivitySessionSources(since: Date, until: Date) throws -> [MemorySource] {
+        let rows = try database.query(
+            """
+            SELECT * FROM sources
+            WHERE kind = ?
+              AND modified_at >= ? AND modified_at <= ?
+            ORDER BY modified_at DESC
+            """,
+            values: [
+                .text(SourceKind.activitySession.rawValue),
+                .text(iso.string(from: since)),
+                .text(iso.string(from: until))
+            ]
+        )
+        return try rows.map(memorySourceFromActivitySessionExtension)
+    }
+
     public func executeRawCountForTest(_ sql: String) throws -> Int {
         let rows = try database.query(sql)
         guard let row = rows.first, case .integer(let n) = row["n"] ?? .null else {
@@ -167,6 +236,20 @@ extension MemoryStore {
             assignmentSource: try activitySessionOptionalText("assignment_source", in: row),
             titleSamples: titleSamples,
             frameCount: try activitySessionInt("frame_count", in: row)
+        )
+    }
+
+    private func memorySourceFromActivitySessionExtension(_ row: [String: SQLiteValue]) throws -> MemorySource {
+        MemorySource(
+            id: try activitySessionUUID("id", in: row),
+            projectID: try activitySessionOptionalUUID("project_id", in: row),
+            kind: SourceKind(rawValue: try activitySessionText("kind", in: row)) ?? .unsupported,
+            title: try activitySessionText("title", in: row),
+            path: try activitySessionText("path", in: row),
+            url: try activitySessionOptionalText("url", in: row),
+            extractedText: try activitySessionText("extracted_text", in: row),
+            modifiedAt: try activitySessionDate("modified_at", in: row, formatter: iso),
+            indexedAt: try activitySessionDate("indexed_at", in: row, formatter: iso)
         )
     }
 }
