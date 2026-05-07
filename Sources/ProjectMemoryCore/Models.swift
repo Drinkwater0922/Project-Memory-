@@ -203,3 +203,104 @@ public struct PreservedAssignment: Equatable {
         self.projectID = projectID
     }
 }
+
+public struct ProjectActivityRule: Identifiable, Codable, Equatable {
+    public let id: UUID
+    public let projectID: UUID
+    public let kind: Kind
+    /// Pattern is stored only after `trimmingCharacters(in: .whitespacesAndNewlines)`.
+    /// Resolver applies kind-specific normalization at match time:
+    ///   - urlContains:  normalizedURL.contains(pattern.lowercased())
+    ///   - titleContains: stripInvisibleControls(title).lowercased().contains(pattern.lowercased())
+    ///   - bundleIDEquals: pattern == draft.bundleID  (case-sensitive — macOS bundle IDs are case-sensitive)
+    public let pattern: String
+    public let isEnabled: Bool
+    public let createdAt: Date
+
+    public enum Kind: String, Codable, CaseIterable {
+        case urlContains
+        case titleContains
+        case bundleIDEquals
+    }
+
+    public init(id: UUID = UUID(), projectID: UUID, kind: Kind, pattern: String, isEnabled: Bool, createdAt: Date = Date()) {
+        self.id = id
+        self.projectID = projectID
+        self.kind = kind
+        self.pattern = pattern
+        self.isEnabled = isEnabled
+        self.createdAt = createdAt
+    }
+}
+
+public struct ActivitySessionDraft: Equatable {
+    public let id: UUID                  // = firstFrame.id (Q4 锁定)
+    public let startedAt: Date
+    public let endedAt: Date
+    public let bundleID: String
+    public let appName: String
+    public let browserHost: String?      // normalize 后的 host；非浏览器为 nil
+    public let category: ActivityCategory
+    /// max 5; first-seen order; sanitized via `TextSanitizer.stripInvisibleControls` then trimmed; empty strings dropped; deduped.
+    public let titleSamples: [String]
+    public let frameCount: Int
+    public let frameIDs: [UUID]
+
+    public init(id: UUID, startedAt: Date, endedAt: Date, bundleID: String, appName: String, browserHost: String?, category: ActivityCategory, titleSamples: [String], frameCount: Int, frameIDs: [UUID]) {
+        self.id = id
+        self.startedAt = startedAt
+        self.endedAt = endedAt
+        self.bundleID = bundleID
+        self.appName = appName
+        self.browserHost = browserHost
+        self.category = category
+        self.titleSamples = titleSamples
+        self.frameCount = frameCount
+        self.frameIDs = frameIDs
+    }
+}
+
+public struct ResolvedActivitySession: Equatable {
+    public let draft: ActivitySessionDraft
+    public let assignmentStatus: AssignmentStatus
+    public let projectID: UUID?
+    /// "manual" | "rule:<uuid>" | nil
+    public let assignmentSource: String?
+
+    public init(draft: ActivitySessionDraft, assignmentStatus: AssignmentStatus, projectID: UUID?, assignmentSource: String?) {
+        self.draft = draft
+        self.assignmentStatus = assignmentStatus
+        self.projectID = projectID
+        self.assignmentSource = assignmentSource
+    }
+}
+
+public struct PersistedActivitySession: Identifiable, Equatable, Codable {
+    public let id: UUID
+    public let startedAt: Date
+    public let endedAt: Date
+    public let bundleID: String
+    public let appName: String
+    public let browserHost: String?
+    public let category: ActivityCategory
+    public let assignmentStatus: AssignmentStatus
+    public let projectID: UUID?
+    public let assignmentSource: String?
+    public let titleSamples: [String]
+    public let frameCount: Int
+
+    public init(id: UUID, startedAt: Date, endedAt: Date, bundleID: String, appName: String, browserHost: String?, category: ActivityCategory, assignmentStatus: AssignmentStatus, projectID: UUID?, assignmentSource: String?, titleSamples: [String], frameCount: Int) {
+        self.id = id
+        self.startedAt = startedAt
+        self.endedAt = endedAt
+        self.bundleID = bundleID
+        self.appName = appName
+        self.browserHost = browserHost
+        self.category = category
+        self.assignmentStatus = assignmentStatus
+        self.projectID = projectID
+        self.assignmentSource = assignmentSource
+        self.titleSamples = titleSamples
+        self.frameCount = frameCount
+    }
+}
