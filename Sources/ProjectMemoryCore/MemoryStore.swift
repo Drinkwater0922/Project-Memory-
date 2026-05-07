@@ -389,6 +389,82 @@ public final class MemoryStore {
         CREATE INDEX IF NOT EXISTS idx_activity_frames_project_observed
         ON activity_frames(project_id, observed_at DESC)
         """)
+        try database.execute("""
+        CREATE TABLE IF NOT EXISTS activity_sessions (
+            id TEXT PRIMARY KEY,
+            started_at TEXT NOT NULL,
+            ended_at TEXT NOT NULL,
+            bundle_id TEXT NOT NULL,
+            app_name TEXT NOT NULL,
+            browser_host TEXT,
+            category TEXT NOT NULL,
+            assignment_status TEXT NOT NULL,
+            project_id TEXT,
+            assignment_source TEXT,
+            title_samples_json TEXT NOT NULL,
+            frame_count INTEGER NOT NULL
+        )
+        """)
+        try database.execute("""
+        CREATE INDEX IF NOT EXISTS idx_sessions_ended_at
+        ON activity_sessions(ended_at DESC)
+        """)
+        try database.execute("""
+        CREATE INDEX IF NOT EXISTS idx_sessions_source_status_ended_at
+        ON activity_sessions(assignment_source, assignment_status, ended_at DESC)
+        """)
+        try database.execute("""
+        CREATE INDEX IF NOT EXISTS idx_sessions_status_ended_at
+        ON activity_sessions(assignment_status, ended_at DESC)
+        """)
+        try database.execute("""
+        CREATE INDEX IF NOT EXISTS idx_sessions_project_ended_at
+        ON activity_sessions(project_id, ended_at DESC)
+        """)
+        try database.execute("""
+        CREATE TABLE IF NOT EXISTS activity_session_frames (
+            session_id TEXT NOT NULL,
+            frame_id TEXT NOT NULL,
+            PRIMARY KEY (session_id, frame_id)
+        )
+        """)
+        // SQLite foreign_keys not enabled in this codebase; cascade is application-enforced via reconciler.replaceWindow.
+        try database.execute("""
+        CREATE INDEX IF NOT EXISTS idx_session_frames_frame
+        ON activity_session_frames(frame_id)
+        """)
+        try database.execute("""
+        CREATE TABLE IF NOT EXISTS project_activity_rules (
+            id TEXT PRIMARY KEY,
+            project_id TEXT NOT NULL,
+            kind TEXT NOT NULL,
+            pattern TEXT NOT NULL,
+            is_enabled INTEGER NOT NULL,
+            created_at TEXT NOT NULL
+        )
+        """)
+        try database.execute("""
+        CREATE INDEX IF NOT EXISTS idx_rules_project
+        ON project_activity_rules(project_id)
+        """)
+        try database.execute("""
+        CREATE INDEX IF NOT EXISTS idx_rules_kind_enabled
+        ON project_activity_rules(kind, is_enabled)
+        """)
+    }
+
+    // MARK: - Test helpers
+
+    public func executeRawForTest(_ sql: String) throws {
+        _ = try database.query(sql)
+    }
+
+    public func fetchIndexNamesForTest(table: String) throws -> [String] {
+        let rows = try database.query(
+            "SELECT name FROM sqlite_master WHERE type='index' AND tbl_name=?",
+            values: [.text(table)]
+        )
+        return try rows.map { try $0.text("name") }
     }
 
     private func brief(from row: [String: SQLiteValue]) throws -> Brief {
