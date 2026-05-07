@@ -20,7 +20,10 @@ public enum ActivityClassifier {
         "com.apple.dt.Xcode",
         "com.apple.Terminal",
         "com.googlecode.iterm2",
-        "md.obsidian"
+        "md.obsidian",
+        "com.electron.lark",
+        "com.electron.lark.iron",
+        "com.openai.chat"
     ]
 
     private static let chatHosts: [String] = [

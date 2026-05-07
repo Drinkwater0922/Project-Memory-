@@ -43,6 +43,24 @@ final class ActivityClassifierTests: XCTestCase {
         )
     }
 
+    func testLarkBundleIDsAreWork() {
+        XCTAssertEqual(
+            ActivityClassifier.classify(candidate(bundleID: "com.electron.lark")),
+            .work
+        )
+        XCTAssertEqual(
+            ActivityClassifier.classify(candidate(bundleID: "com.electron.lark.iron")),
+            .work
+        )
+    }
+
+    func testChatGPTBundleIDIsWork() {
+        XCTAssertEqual(
+            ActivityClassifier.classify(candidate(bundleID: "com.openai.chat")),
+            .work
+        )
+    }
+
     func testChromeWithTwitterURLIsSocialMedia() {
         XCTAssertEqual(
             ActivityClassifier.classify(
