@@ -304,3 +304,63 @@ public struct PersistedActivitySession: Identifiable, Equatable, Codable {
         self.frameCount = frameCount
     }
 }
+
+public struct SelectedSourceSnippet: Equatable {
+    public let source: MemorySource
+    public let snippet: String
+    public let truncated: Bool
+
+    public init(source: MemorySource, snippet: String, truncated: Bool) {
+        self.source = source
+        self.snippet = snippet
+        self.truncated = truncated
+    }
+}
+
+public struct ActivitySessionCaps: Equatable {
+    public let maxSourcesPerBrief: Int
+    public let maxSourcesPerAnswer: Int
+    public let maxCharsPerSource: Int
+    public let maxTotalBriefActivityChars: Int
+    public let maxTotalAnswerActivityChars: Int
+
+    public init(
+        maxSourcesPerBrief: Int,
+        maxSourcesPerAnswer: Int,
+        maxCharsPerSource: Int,
+        maxTotalBriefActivityChars: Int,
+        maxTotalAnswerActivityChars: Int
+    ) {
+        self.maxSourcesPerBrief = maxSourcesPerBrief
+        self.maxSourcesPerAnswer = maxSourcesPerAnswer
+        self.maxCharsPerSource = maxCharsPerSource
+        self.maxTotalBriefActivityChars = maxTotalBriefActivityChars
+        self.maxTotalAnswerActivityChars = maxTotalAnswerActivityChars
+    }
+
+    public static let `default` = ActivitySessionCaps(
+        maxSourcesPerBrief: 4,
+        maxSourcesPerAnswer: 2,
+        maxCharsPerSource: 400,
+        maxTotalBriefActivityChars: 900,
+        maxTotalAnswerActivityChars: 600
+    )
+}
+
+public struct SelectionTotals: Equatable {
+    public let maxSourcesPerBrief: Int
+    public let maxSourcesPerAnswer: Int
+    public let maxSourcesPerProject: Int
+
+    public init(maxSourcesPerBrief: Int, maxSourcesPerAnswer: Int, maxSourcesPerProject: Int) {
+        self.maxSourcesPerBrief = maxSourcesPerBrief
+        self.maxSourcesPerAnswer = maxSourcesPerAnswer
+        self.maxSourcesPerProject = maxSourcesPerProject
+    }
+
+    public static let `default` = SelectionTotals(
+        maxSourcesPerBrief: 12,
+        maxSourcesPerAnswer: 8,
+        maxSourcesPerProject: 3
+    )
+}
